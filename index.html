@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission Form with PDF Download</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button, select, textarea {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .admission-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .admission-table th, .admission-table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        .admission-form-row {
+            border-bottom: 2px solid #ddd;
+        }
+        .admission-form-row td {
+            vertical-align: top;
+        }
+        .field-name {
+            font-weight: bold;
+            background-color: #f9f9f9;
+            width: 30%;
+        }
+        .field-value {
+            background-color: #fff;
+        }
+        .empty-message {
+            text-align: center;
+            color: #888;
+            margin: 20px 0;
+        }
+        #pdf-button {
+            background-color: #007BFF;
+            margin-top: 10px;
+        }
+        #pdf-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admission Form Details</h1>
+    <div class="container">
+        <form id="admission-form">
+            <input type="text" id="student-name" placeholder="Student Name" required>
+            <select id="student-class" required>
+                <option value="" disabled selected>Select Class</option>
+                <option value="Class 6">Class 6</option>
+                <option value="Class 7">Class 7</option>
+                <option value="Class 8">Class 8</option>
+                <option value="Class 9">Class 9</option>
+                <option value="Class 10">Class 10</option>
+            </select>
+            <input type="text" id="student-section" placeholder="Section" required>
+            <input type="date" id="student-dob" required>
+            <input type="text" id="father-name" placeholder="Father's Name" required>
+            <textarea id="address" placeholder="Address" rows="3" required></textarea>
+            <button type="submit">Add Student</button>
+        </form>
+
+        <table class="admission-table" id="admission-table">
+            <tbody>
+                <tr class="empty-message">
+                    <td colspan="2">No admissions have been added yet. Fill out the form above to add details.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button id="pdf-button">Download PDF</button>
+    </div>
+
+    <script>
+        const admissionForm = document.getElementById('admission-form');
+        const admissionTable = document.getElementById('admission-table').querySelector('tbody');
+        const pdfButton = document.getElementById('pdf-button');
+
+        admissionForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('student-name').value.trim();
+            const studentClass = document.getElementById('student-class').value;
+            const section = document.getElementById('student-section').value.trim();
+            const dob = document.getElementById('student-dob').value;
+            const fatherName = document.getElementById('father-name').value.trim();
+            const address = document.getElementById('address').value.trim();
+
+            // Remove empty message if it exists
+            const emptyMessage = document.querySelector('.empty-message');
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
+
+            // Create rows to display form details like a form
+            const formDetails = [
+                { field: "Student Name", value: name },
+                { field: "Class", value: studentClass },
+                { field: "Section", value: section },
+                { field: "Date of Birth", value: dob },
+                { field: "Father's Name", value: fatherName },
+                { field: "Address", value: address },
+            ];
+
+            formDetails.forEach(detail => {
+                const row = document.createElement('tr');
+                row.classList.add('admission-form-row');
+                row.innerHTML = `
+                    <td class="field-name">${detail.field}</td>
+                    <td class="field-value">${detail.value}</td>
+                `;
+                admissionTable.appendChild(row);
+            });
+
+            // Reset the form
+            admissionForm.reset();
+        });
+
+        // PDF generation function
+        pdfButton.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(18);
+            doc.text("Admission Form Details", 20, 20);
+
+            let yOffset = 40; // Starting y position
+            const rows = admissionTable.querySelectorAll('.admission-form-row');
+
+            if (rows.length === 0) {
+                doc.setFontSize(14);
+                doc.text("No admissions have been added yet.", 20, yOffset);
+            } else {
+                rows.forEach((row) => {
+                    const fieldName = row.querySelector('.field-name').innerText;
+                    const fieldValue = row.querySelector('.field-value').innerText;
+                    doc.setFontSize(12);
+                    doc.text(`${fieldName}: ${fieldValue}`, 20, yOffset);
+                    yOffset += 10; // Add space between entries
+                });
+            }
+
+            doc.save("Admission_Form.pdf");
+        });
+    </script>
+</body>
+</html>
